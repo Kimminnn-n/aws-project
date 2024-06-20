@@ -1,0 +1,36 @@
+# 필요한 라이브러리 설치
+!pip install flask-ngrok
+!pip install flask
+
+# Flask 및 필요한 라이브러리 임포트
+from flask import Flask, request, jsonify
+from flask_ngrok import run_with_ngrok
+import requests
+
+app = Flask(__name__)
+run_with_ngrok(app)  # ngrok으로 앱을 실행합니다.
+
+OPENAI_API_KEY = 'your-openai-api-key'  # OpenAI API 키를 설정합니다.
+
+@app.route('/query', methods=['POST'])
+def query_openai():
+    data = request.get_json()
+    prompt = data.get('prompt', '')
+
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {OPENAI_API_KEY}',
+    }
+    json_data = {
+        'model': 'text-davinci-003',
+        'prompt': prompt,
+        'max_tokens': 100,
+    }
+
+    response = requests.post('https://api.openai.com/v1/completions', headers=headers, json=json_data)
+    response_data = response.json()
+
+    return jsonify(response_data)
+
+if __name__ == '__main__':
+    app.run()
